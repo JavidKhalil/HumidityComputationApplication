@@ -10,8 +10,8 @@ import zio.nio.file.Files.readAllLines
 
 /**
  * File utils:
- *   read
- *   list files
+ * read
+ * list files
  *
  */
 object FilesUtil {
@@ -22,8 +22,9 @@ object FilesUtil {
 
   def getFiles(path: String): ZIO[Any, Throwable, List[File]] =
     for {
-      errorOrLines <- listFilesFromDirectory(path)
-      files <- errorOrLines match {
+      fibErrorOrLines <- listFilesFromDirectory(path).fork
+      fibAwait <- fibErrorOrLines.join
+      files <- fibAwait match {
         case Left(err) => ZIO.fail(err)
         case Right(filesList) => ZIO.succeed(filesList)
       }

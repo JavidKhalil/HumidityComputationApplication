@@ -10,8 +10,9 @@ import zio.ZIO
 object Parser {
 
   def parseFilesContent(path: String): ZIO[Any, Throwable, List[List[String]]] = for {
-    files <- getFiles(path)
-    contentLines <- ZIO.foreach(files) { file =>
+    fiberFiles <- getFiles(path).fork
+    files <- fiberFiles.join
+    contentLines <- ZIO.foreachPar(files) { file =>
       readFile(zio.nio.file.Path.fromJava(file.toPath))
     }
   } yield contentLines
